@@ -77,12 +77,6 @@ class GameState:
 
         self.printWell()
 
-    def moveDown(self):
-        # self.movePiecesDown()
-        # if self.pieceCanMove():
-            # self.movePieceDown()
-        self.down()
-
     def pieceUnderneath(self):
         piece = self.curr_piece[self.piece_state]
         pieceY = self.piece_y
@@ -91,7 +85,7 @@ class GameState:
             return True
         else: return False
 
-    def down(self):
+    def moveDown(self):
         well = self.well
         piece = self.curr_piece[self.piece_state][:]
         pieceY = self.piece_y
@@ -131,9 +125,6 @@ class GameState:
                     return
                 col += 1
 
-            print('***********************')
-            print('length of newRow: ' + str(len(newRow)))
-            print('***********************')
             if len(newRow) == 10:
                 well[row] = [0 for x in range(0, 10)]
                 well[row + 1] = newRow
@@ -146,41 +137,6 @@ class GameState:
             row -= 1
 
         self.piece_y += 1
-        print('MOVE COMPLETE!!!')
-
-    def movePieceDown(self):
-        print('moving piece down')
-
-        piece = self.curr_piece[self.piece_state][:]
-        posX = self.piece_x
-        posY = self.piece_y
-        width = len(piece[0])
-        height = len(piece)
-        well = self.well
-
-        wellRowStartIndex = posY
-        wellRowEndIndex = posY + height - 1
-        wellColStartIndex = posX
-        wellColEndIndex = posX + width
-
-        newRow = wellRowStartIndex
-        newRows = []
-        while newRow <= wellRowEndIndex:
-            nextRow = well[newRow + 1][:wellColStartIndex] + well[newRow][wellColStartIndex:wellColEndIndex] + well[newRow + 1][wellColEndIndex:]
-            newRows.append(nextRow)
-            if newRow == wellRowEndIndex:
-                oldRow = wellRowStartIndex
-                while oldRow <= wellRowEndIndex:
-                    well[oldRow] = [0 for x in range(0, 10)]
-                    oldRow += 1
-                row = 0
-                while row < len(newRows):
-                    well[wellRowStartIndex + 1 + row] = newRows[row]
-                    row += 1
-
-            newRow += 1
-        self.piece_y += 1
-        self.printWell()
 
     def rowEmpty(self, row):
         empty = True
