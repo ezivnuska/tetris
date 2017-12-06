@@ -10,7 +10,7 @@ class GameState:
         self.init_well()
         self.score = 0
         self.level = 1
-        self.gravity = 400
+        self.gravity = 1000
         self.curr_piece = None
         self.next_piece = None
         self.piece_state = 0
@@ -138,6 +138,79 @@ class GameState:
 
         self.piece_y += 1
 
+    def moveRight(self):
+        print('moving right')
+        well = self.well
+        piece = self.curr_piece[self.piece_state][:]
+        pieceY = self.piece_y
+        pieceHeight = len(piece)
+        pieceX = self.piece_x
+        pieceWidth = len(piece[0])
+        startX = pieceX
+        endX = pieceX + pieceWidth
+        startY = pieceY
+        endY = startY + pieceHeight - 1
+
+        if endX >= const.WELL_W:
+            print('cannot move right')
+            return
+
+        row = endY
+        # for each row, starting at bottom
+        while row >= startY:
+            col = endX
+            # for each column, starting at right
+            while col >= startX:
+                currentColumn = well[row][col]
+                if col + 1 > const.WELL_W - 1:
+                    col -= 1
+                    continue
+                nextColumn = well[row][col + 1]
+                if currentColumn is not 0 and nextColumn is 0:
+                    well[row][col + 1] = currentColumn
+                    well[row][col] = 0
+                col -= 1
+            print('--------------------')
+            print(str(well[row]) + '*')
+            print('--------------------')
+            row -= 1
+        self.piece_x += 1
+
+    def moveLeft(self):
+        print('moving left')
+        well = self.well
+        piece = self.curr_piece[self.piece_state][:]
+        pieceY = self.piece_y
+        pieceHeight = len(piece)
+        pieceX = self.piece_x
+        pieceWidth = len(piece[0])
+        startX = pieceX
+        endX = pieceX + pieceWidth - 1
+        startY = pieceY
+        endY = startY + pieceHeight - 1
+
+        if startX - 1 < 0:
+            print('cannot move left')
+            return
+
+        row = endY
+        # for each row, starting at bottom
+        while row >= startY:
+            col = 0
+            # for each column, starting at left
+            while col <= endX:
+                currentColumn = well[row][col]
+                nextColumn = well[row][col - 1]
+                if currentColumn is not 0 and nextColumn is 0:
+                    well[row][col - 1] = currentColumn
+                    well[row][col] = 0
+                col += 1
+            print('--------------------')
+            print(str(well[row]) + '*')
+            print('--------------------')
+            row -= 1
+        self.piece_x -= 1
+
     def rowEmpty(self, row):
         empty = True
         currentRow = self.well[row]
@@ -223,7 +296,7 @@ class GameState:
 class App:
     def __init__(self):
         self.timeKeyPressed = 0
-        self.keyInterval = 1000
+        self.keyInterval = 200
 
         self.init()
 
@@ -267,12 +340,12 @@ class App:
             # press 'q' to quit
             if event.key == pygame.K_q:
                 self.terminate()
-            # if event.key == pygame.K_LEFT:
-            #     if self.getTime() > self.timeKeyPressed + self.keyInterval:
-            #         self.movePieceLeft()
-            # if event.key == pygame.K_RIGHT:
-            #     if self.getTime() > self.timeKeyPressed + self.keyInterval:
-            #         self.movePieceRight()
+            if event.key == pygame.K_LEFT:
+                if self.getTime() > self.timeKeyPressed + self.keyInterval:
+                    self.game_state.moveLeft()
+            if event.key == pygame.K_RIGHT:
+                if self.getTime() > self.timeKeyPressed + self.keyInterval:
+                    self.game_state.moveRight()
             # if event.key == pygame.K_SPACE:
             #     self.movePieceToBottom()
 
