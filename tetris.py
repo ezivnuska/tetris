@@ -26,7 +26,6 @@ class GameState:
     def get_new_piece(self):
         # print('number of shapes: ' + str(len(const.SHAPES)))
         randomInt = random.randint(0, len(const.SHAPES) - 1)
-        self.current_piece_color = randomInt
         # print('randomInt: ' + str(randomInt))
         newPiece = const.SHAPES[randomInt]
         # print('newPiece:', str(newPiece))
