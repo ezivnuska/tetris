@@ -44,6 +44,12 @@ class Shape(object):
             row += 1
         self.tiles = updatedTiles
 
+    def getHeight(self):
+        return len(self.getTileList())
+
+    def getWidth(self):
+        return len(self.getTileList()[0])
+
     def getX(self):
         return self.posX
 
@@ -71,7 +77,7 @@ class Shape(object):
     def getListOfTiles(self):
         list = []
         row = 0
-        tiles = self.getTiles()
+        tiles = self.getTileList()
         while row < len(tiles):
             col = 0
             while col < len(tiles[row]):
@@ -79,6 +85,132 @@ class Shape(object):
                 col += 1
             row += 1
         return list
+
+    def setTile(self, row, col, newY, newX):
+        tiles = self.getTiles()
+        t = 0
+        while t < len(tiles):
+            tile = tiles[t]
+            if tile.getY() is row and tile.getX() is col:
+                tile.setY(newY)
+                tile.setX(newX)
+            t += 1
+
+    def canMoveDown(self, well):
+        tiles = self.getBottomTiles(well)
+        # print('canMoveDown tile: ' + str(tiles))
+        # for i in tiles:
+        #     print('bottomTiles at y: ' + str(i.getY()) + ' and x: ' + str(i.getX()))
+        t = 0
+        while t < len(tiles):
+            tile = tiles[t]
+            # if tile is not empty and tile below is vacant
+            # print('tile is empty: ' + str(tile.isEmpty()) + ' y: ' + str(tile.getY()) + ' x: ' + str(tile.getX()))
+            # print('tile below is empty: ' + str(tile.tileBelowIsEmpty(well)) + ' y: ' + str(tile.getY()) + ' x: ' + str(tile.getX()) + ' value: ' + str(tile.getValue()))
+            if not tile.isEmpty() and not tile.tileBelowIsEmpty(well):
+                print('cannot move down')
+                return False
+            t += 1
+
+        return True
+
+    def getBottomTiles(self, well):
+        bottomTiles = []
+        tileList = self.getTileList()
+        checkedColumns = []
+        row = len(tileList) - 1
+        while row >= 0:
+            col = 0
+            while col < len(tileList[row]):
+                currentColumn = tileList[row][col]
+                if currentColumn is not 0:
+                    # print('get tile called from getBottomTiles')
+                    if row is len(tileList) - 1:
+                        # print('bottomTile y:' + str(self.posY + row) + ' and x: ' + str(self.posX + col))
+                        bottomTiles.append(well.getTile(self.posY + row, self.posX + col))
+                        checkedColumns.append(col)
+                    elif col not in checkedColumns:
+                        # print('bottomTile y:' + str(self.posY + row) + ' and x: ' + str(self.posX + col))
+                        bottomTiles.append(well.getTile(self.posY + row, self.posX + col))
+                        checkedColumns.append(col)
+                col += 1
+            # print('tileBelowIsEmpty: ' + str(tile.tileBelowIsEmpty(well)))
+            # if tile.tileBelowIsEmpty(well):
+            #     bottomTiles.append(tile)
+            row -= 1
+        # print(str(len(bottomTiles)) + ' bottomTiles')
+        return bottomTiles
+
+    def getTopTiles(self, well):
+        topTiles = []
+        tileList = self.getTileList()
+        checkedColumns = []
+        row = 0
+        while row < len(tileList):
+            col = 0
+            while col < len(tileList[row]):
+                currentColumn = tileList[row][col]
+                if currentColumn is not 0:
+                    # print('get tile called from getTopTiles')
+                    if row is 0:
+                        # print('topTile y:' + str(self.posY + row) + ' and x: ' + str(self.posX + col))
+                        topTiles.append(well.getTile(self.posY + row, self.posX + col))
+                        checkedColumns.append(col)
+                    elif col not in checkedColumns:
+                        # print('topTile y:' + str(self.posY + row) + ' and x: ' + str(self.posX + col))
+                        topTiles.append(well.getTile(self.posY + row, self.posX + col))
+                        checkedColumns.append(col)
+                col += 1
+            row += 1
+        # print(str(len(topTiles)) + ' topTiles')
+        return topTiles
+
+    def getFilledTiles(self):
+        filledTiles = []
+        t = 0
+        tiles = self.getTiles()[:]
+        while t < len(tiles):
+            tile = tiles[t]
+            if tile.getValue() is not 0:
+                filledTiles.append(tile)
+            t += 1
+        # print('getFilledTiles():' + str(len(filledTiles)))
+        return filledTiles
+
+    def moveDown(self, well):
+        print('MOVING DOWN ')
+        # get list of tiles in shape
+        tiles = self.getFilledTiles()
+        topTiles = self.getTopTiles(well)
+        # print('topTiles: ' + str(len(topTiles)))
+        # print('number of tiles to move: ' + str(len(tiles)))
+        t = len(tiles) - 1
+        # for each tile
+        while t >= 0:
+            tile = tiles[t]
+            tileY = tile.getY()
+            tileX = tile.getX()
+            # print('moving tile at y: ' + str(tile.getY()) + ' and x: ' + str(tile.getX()))
+            # print('setTile from shape.moveDown: ' + str(tileY + 1))
+            well.setTile(tileY + 1, tileX, tile.getValue())
+            self.setTile(tileY, tileX, tileY + 1, tileX)
+            well.setTile(tileY, tileX, 0)
+            t -= 1
+
+        tt = 0
+        while tt < len(topTiles):
+            topTile = topTiles[tt]
+            y = topTile.getY()
+            x = topTile.getX()
+            # print('resetting topTile at y:' + str(x) + ' and x: ' + str(y))
+            print('...setting top tile...' + str(y) + ', ' + str(x))
+            well.setTile(y, x, 0)
+            tt += 1
+
+        if self.posY < const.WELL_H - 1:
+            self.posY += 1
+
+        # well.printWell()
 
     def rotateRight(self):
         if len(self.tiles) is 0:
@@ -120,57 +252,47 @@ class Tile(object):
     def setValue(self, value):
         self.value = value
 
+    def isEmpty(self):
+        return self.value is 0
+
     def tileToRightIsEmpty(self, well):
-        rowInWell = well[self.posY]
+        rowInWell = well.getRowOfTilesByIndex(self.posY)
         tileInRow = rowInWell[self.posX + 1]
         return tileInRow is 0
 
     def tileToLeftIsEmpty(self, well):
-        rowInWell = well[self.posY]
+        rowInWell = well.getRowOfTilesByIndex(self.posY)
         tileInRow = rowInWell[self.posX - 1]
         return tileInRow is 0
 
     def tileBelowIsEmpty(self, well):
-        rowInWell = well[self.posY + 1]
+        rowInWell = well.getRowOfTilesByIndex(self.posY)
+        if self.tileIsAtBottom(well):
+            return False
+        nextRowInWell = well.getRowOfTilesByIndex(self.posY + 1)
         tileInRow = rowInWell[self.posX]
+        tileInNextRow = nextRowInWell[self.posX]
+        # print('tileInNextRow y: ' + str(tileInNextRow.getY()) + ' x: ' + str(tileInNextRow.getX()) + ' :' + str(tileInNextRow.getValue()))
+        # print('checking tile below: ' + ' y: ' + str(tileInRow.getY()) + ' x: ' + str(tileInRow.getX()) + ': ' + str(tileInNextRow.getValue()))
+        return tileInNextRow.getValue() is 0
+
+    def tileAboveIsEmpty(self, well):
+        rowInWell = well.getRowOfTilesByIndex(self.posY)
+        rowAboveInWell = well.getRowOfTilesByIndex(self.posY - 1)
+        tileInRow = rowAboveInWell[self.posX]
+        # print('checking tile above: ' + str(tileInRow.getValue()))
         return tileInRow is 0
 
     def tileIsFlushLeft(self):
         return self.posX is 0
 
     def tileIsFlushRight(self, well):
-        lastColumn = len(well[0])
+        lastColumn = well.getColumns() - 1
         return self.posX is lastColumn
 
     def tileIsAtBottom(self, well):
-        lastRow = len(well)
+        lastRow = well.getRows() - 1
         return self.posY is lastRow
-
-class RowOfTiles(object):
-    def __init__(self, tiles):
-        self.tiles = tiles
-
-    def getTiles(self):
-        return self.tiles
-
-    def getTile(self, col):
-        return self.tiles[col]
-
-    def rowIsFilled(self):
-        tile = 0
-        while tile < len(tiles):
-            if tiles[tile] is 0:
-                return False
-            tile += 1
-        return True
-
-    def printTiles(self):
-        tiles = []
-        t = 0
-        while t < len(self.tiles):
-            tiles.append(self.getTile(t).getValue())
-            t += 1
-        print(tiles)
 
 class Well(object):
     def __init__(self):
@@ -184,11 +306,17 @@ class Well(object):
         return self.rows[index]
 
     def getTile(self, row, col):
+        # print('getting tile at y: ' + str(row) + ', x: ' + str(col))
+        if row > const.WELL_H - 1:
+            print('fail: ' + str(row))
         return self.rows[row][col]
 
     def setTile(self, row, col, value):
-        row = self.rows[row]
-        col = row[col]
+        tileAtRow = self.rows[row]
+        if value is 0:
+            print('WELL::setting tile to 0 at: row: ' + str(row) + ', col: ' + str(col) + ', val: ' + str(value))
+        else: print('WELL::setting tile at: row: ' + str(row) + ', col: ' + str(col) + ', val: ' + str(value))
+        col = tileAtRow[col]
         col.setValue(value)
 
     def clearTilesAtIndex(self, index):
@@ -213,6 +341,7 @@ class Well(object):
             currentRow = []
             while col < len(rowOfTiles):
                 tile = rowOfTiles[col]
+                # print('tile y: ' + str(tile.getY()) + ' and x: ' + str(tile.getX()) + ': ' + str(tile.getValue()))
                 currentRow.append(tile.getValue())
                 col += 1
             print(currentRow)

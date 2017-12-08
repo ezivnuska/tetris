@@ -9,7 +9,7 @@ class App(object):
         # state
         self.timeLastKeyPressed = 0
         self.timeBetweenKeyPresses = 200
-        self.gravity = 100
+        self.gravity = 500
         # ...
 
         self.score = 0
@@ -43,8 +43,11 @@ class App(object):
         if event.type == QUIT:
             self.terminate()
 
-        # if event.type is const.MOVE_DOWN:
-        #     self.moveDown()
+        if event.type is const.MOVE_DOWN:
+            # print('-------')
+            # print('MOVE_DOWN')
+            self.moveDown()
+
 
         if event.type is pygame.KEYDOWN:
             if event.key is pygame.K_q:
@@ -58,6 +61,16 @@ class App(object):
             # if event.key is pygame.K_SPACE:
             #     self.moveToBottom()
 
+    def moveDown(self):
+        # print('canMoveDown: ' + str(self.currentShape.canMoveDown(self.well)))
+        if self.currentShape.canMoveDown(self.well):
+            print('moving down from app')
+            # print('moving down')
+            self.currentShape.moveDown(self.well)
+
+        self.well.printWell()
+
+
     def addTiles(self):
         print('adding tiles')
         row = 0
@@ -65,8 +78,8 @@ class App(object):
             tiles = []
             col = 0
             while col < const.WELL_W:
-                newTile = classes.Tile(col, row)
-                tiles.append(newTile)
+                tile = classes.Tile(row, col)
+                tiles.append(tile)
                 col += 1
             self.well.addRowOfTiles(tiles)
             row += 1
@@ -94,11 +107,13 @@ class App(object):
         t = 0
         while t < len(tiles):
             tile = tiles[t]
-            self.well.setTile(tile.getY(), tile.getX(), tile.getValue())
-            newTile = self.well.getTile(tile.getY(), tile.getX())
+            if tile.getValue() is not 0:
+                self.well.setTile(tile.getY(), tile.getX(), tile.getValue())
+            # newTile = self.well.getTile(tile.getY(), tile.getX())
             t += 1
-
+        print('added shape')
         self.well.printWell()
+        print('^^^^^^^^^^^^^^^^^^')
 
 
     def render(self):
@@ -123,6 +138,7 @@ class App(object):
 
         row = 0
         while row < const.WELL_H:
+            # print('getting tile: ' + str(row))
             col = 0
             while col < const.WELL_W:
                 currentTile = self.well.getTile(row, col)
