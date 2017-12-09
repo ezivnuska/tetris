@@ -16,7 +16,7 @@ class App(object):
         self.level = 1
 
         self.well = classes.Well()
-        self.currentShape = None
+        self.shape = None
         self.nextShape = None
         self.shapeRotation = 0
 
@@ -39,6 +39,9 @@ class App(object):
             self.loop()
             self.render()
 
+    def getTime(self):
+        return int(round(time.time() * 1000))
+
     def handleEvent(self, event):
         if event.type == QUIT:
             self.terminate()
@@ -49,26 +52,57 @@ class App(object):
             self.moveDown()
 
 
-        if event.type is pygame.KEYDOWN:
-            if event.key is pygame.K_q:
+        if event.type == pygame.KEYDOWN:
+
+            if event.key == pygame.K_q:
                 self.terminate()
-            # if event.key is pygame.K_LEFT:
-            #     if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
-            #         self.moveLeft()
-            # if event.key is pygame.K_RIGHT:
-            #     if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
-            #         self.moveRight()
+            if event.key == pygame.K_LEFT:
+                if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
+                    self.moveLeft()
+            if event.key == pygame.K_RIGHT:
+                print('right key pressed')
+                if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
+                    self.moveRight()
             # if event.key is pygame.K_SPACE:
             #     self.moveToBottom()
+            if event.key == pygame.K_UP:
+                print('Up key pressed')
+                if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
+                    self.rotateRight()
+            if event.key == pygame.K_DOWN:
+                if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
+                    self.rotateLeft()
 
     def moveDown(self):
-        # print('canMoveDown: ' + str(self.currentShape.canMoveDown(self.well)))
-        if self.currentShape.canMoveDown(self.well):
-            print('moving down from app')
-            # print('moving down')
-            self.currentShape.moveDown(self.well)
+        if self.shape.canMoveDown(self.well):
+            self.shape.moveDown(self.well)
+        else:
+            lastShape = self.shape
+            self.shape = None
+            if len(self.well.getFilledRows()) > 0:
+                self.well.removeFilledRows(lastShape)
 
         self.well.printWell()
+
+    def moveRight(self):
+        if self.shape.canMoveRight(self.well):
+            self.shape.moveRight(self.well)
+
+        self.well.printWell()
+
+    def moveLeft(self):
+        if self.shape.canMoveLeft(self.well):
+            self.shape.moveLeft(self.well)
+
+        self.well.printWell()
+
+    def rotateRight(self):
+        self.shape.rotateRight(self.well)
+        # self.addShapeToWell()
+
+    def rotateLeft(self):
+        self.shape.rotateLeft(self.well)
+        # self.addShapeToWell()
 
 
     def addTiles(self):
@@ -85,7 +119,7 @@ class App(object):
             row += 1
 
     def loop(self):
-        if not self.currentShape:
+        if not self.shape:
             self.spawnShape()
 
     def getShape(self):
@@ -96,13 +130,13 @@ class App(object):
         if not self.nextShape:
             self.nextShape = self.getShape()
 
-        self.currentShape = self.nextShape
+        self.shape = self.nextShape
         self.nextShape = self.getShape()
 
         self.addShapeToWell()
 
     def addShapeToWell(self):
-        shape = self.currentShape
+        shape = self.shape
         tiles = shape.getTiles()
         t = 0
         while t < len(tiles):
@@ -143,6 +177,7 @@ class App(object):
             while col < const.WELL_W:
                 currentTile = self.well.getTile(row, col)
                 if currentTile.getValue() is not 0:
+                    # print(const.C_LIST[currentTile.getValue()])
                     pygame.draw.rect(self.screen, const.C_LIST[currentTile.getValue()],
                                     (const.MARGIN_LEFT + col * const.BLOCK_SIZE,
                                     const.MARGIN_TOP + row * const.BLOCK_SIZE,
