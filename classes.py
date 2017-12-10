@@ -99,13 +99,9 @@ class Shape(object):
         if self.isAtBottom(well):
             return False
         tiles = self.getBottomTiles(well)
-        print('number of bottom tiles: ' + str(len(tiles)))
         t = 0
         while t < len(tiles):
             tile = tiles[t]
-            print('tile: ' + str(tile.getY()) + ', ' + str(tile.getX()) + ', ' + str(tile.getValue()))
-            print('tileIsEmpty: ' + str(tile.isEmpty()))
-            print('tileBelowIsEmpty: ' + str(tile.tileBelowIsEmpty(well)))
             if not tile.isEmpty() and not tile.tileBelowIsEmpty(well):
                 print('cannot move down')
                 return False
@@ -312,28 +308,70 @@ class Shape(object):
 
         # well.printWell()
 
+    def getNextRotationRight(self):
+        if len(self.tileList) is 1:
+            return 0
+        if self.rotation + 1 < len(self.tileList):
+            return self.rotation + 1
+        return 0
+
+    def getNextRotationLeft(self):
+        if len(self.tileList) is 1:
+            return 0
+        if self.rotation - 1 >= 0:
+            return self.rotation - 1
+        return len(self.tileList) - 1
+
+    def getHeightAfterRotationRight(self):
+        nextRotation = self.getNextRotationRight()
+        return len(self.tileList[nextRotation])
+
+    def getHeightAfterRotationLeft(self):
+        nextRotation = self.getNextRotationLeft()
+        return len(self.tileList[nextRotation])
+
+    def getWidthAfterRotationRight(self):
+        nextRotation = self.getNextRotationRight()
+        return len(self.tileList[nextRotation][0])
+
+    def getWidthAfterRotationLeft(self):
+        nextRotation = self.getNextRotationLeft()
+        return len(self.tileList[nextRotation][0])
+
+    def canRotateRight(self):
+        newWidth = self.getWidthAfterRotationRight()
+        newHeight = self.getHeightAfterRotationRight()
+        if self.posX + newWidth >= const.WELL_W:
+            return False
+        if self.posY + newHeight >= const.WELL_H:
+            return False
+        return True
+
+    def canRotateLeft(self):
+        newWidth = self.getWidthAfterRotationLeft()
+        newHeight = self.getHeightAfterRotationLeft()
+        if self.posX < 0:
+            return False
+        if self.posY + newHeight >= const.WELL_H:
+            return False
+        return True
 
     def rotateRight(self, well):
+        if not self.canRotateRight():
+            return None
         print('* rotate right *')
-        if len(self.tileList) is 1:
-            print('cannot rotate. only one position.')
-            return
         self.clearShapeTiles(well)
-        if self.rotation + 1 < len(self.tileList):
-            self.rotation += 1
-        else: self.rotation = 0
+        self.rotation = self.getNextRotationRight()
         self.createTilesFromData()
         self.updateShape(well)
         print('rotation: ' + str(self.rotation))
 
     def rotateLeft(self, well):
+        if not self.canRotateLeft():
+            return None
         print('* rotate left *')
-        if len(self.tileList) is 1:
-            return
         self.clearShapeTiles(well)
-        if self.rotation - 1 >= 0:
-            self.rotation -= 1
-        else: self.rotation = len(self.tileList) - 1
+        self.rotation = self.getNextRotationLeft()
         self.createTilesFromData()
         self.updateShape(well)
         print('rotation: ' + str(self.rotation))
