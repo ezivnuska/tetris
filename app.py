@@ -9,7 +9,7 @@ class App(object):
         # state
         self.timeLastKeyPressed = 0
         self.timeBetweenKeyPresses = 200
-        self.gravity = 500
+        self.speed = 500
         # ...
 
         self.score = 0
@@ -25,7 +25,7 @@ class App(object):
     def init(self):
         pygame.init()
         pygame.key.set_repeat(200, 100)
-        pygame.time.set_timer(const.MOVE_DOWN, self.gravity)
+        self.setSpeed(self.speed)
 
         self.screen = pygame.display.set_mode((const.SCR_W, const.SCR_H))
         self.font = pygame.font.Font('Blackout3plus1.otf', 30)
@@ -60,18 +60,48 @@ class App(object):
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     self.moveLeft()
             if event.key == pygame.K_RIGHT:
-                print('right key pressed')
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     self.moveRight()
             # if event.key is pygame.K_SPACE:
             #     self.moveToBottom()
             if event.key == pygame.K_UP:
-                print('Up key pressed')
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     self.rotateRight()
             if event.key == pygame.K_DOWN:
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     self.rotateLeft()
+            if event.key == pygame.K_COMMA:
+                if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
+                    self.reduceSpeed()
+            if event.key == pygame.K_PERIOD:
+                if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
+                    self.increaseSpeed()
+            if event.key == pygame.K_p:
+                if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
+                    if self.speed is not 0:
+                        self.pause()
+                    else:
+                        self.resume()
+
+    def setSpeed(self, speed):
+        self.lastSpeed = self.speed
+        self.speed = speed
+        pygame.time.set_timer(const.MOVE_DOWN, self.speed)
+
+    def reduceSpeed(self):
+        newSpeed = self.speed + 50
+        self.setSpeed(newSpeed)
+
+    def increaseSpeed(self):
+        newSpeed = self.speed - 50
+        if newSpeed < 50: newSpeed = 50
+        self.setSpeed(newSpeed)
+
+    def pause(self):
+        self.setSpeed(0)
+
+    def resume(self):
+        self.setSpeed(self.lastSpeed)
 
     def moveDown(self):
         if self.shape.canMoveDown(self.well):
@@ -80,7 +110,7 @@ class App(object):
             lastShape = self.shape
             self.shape = None
             if len(self.well.getFilledRows()) > 0:
-                self.well.removeFilledRows(lastShape)
+                self.well.removeFilledRows()
 
         self.well.printWell()
 

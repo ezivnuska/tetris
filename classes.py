@@ -186,12 +186,10 @@ class Shape(object):
                 if currentColumn is not 0:
                     if row is len(tileList) - 1:
                         bottomTile = well.getTile(self.posY + row, self.posX + col)
-                        print('found bottomTile: ' + str(bottomTile.getY()) + ', ' + str(bottomTile.getX()) + ', ' + str(bottomTile.getValue()))
                         bottomTiles.append(bottomTile)
                         checkedColumns.append(col)
                     elif col not in checkedColumns:
                         bottomTile = well.getTile(self.posY + row, self.posX + col)
-                        print('found bottomTile: ' + str(bottomTile.getY()) + ', ' + str(bottomTile.getX()) + ', ' + str(bottomTile.getValue()))
                         bottomTiles.append(bottomTile)
                         checkedColumns.append(col)
                 col += 1
@@ -364,7 +362,7 @@ class Shape(object):
         self.rotation = self.getNextRotationRight()
         self.createTilesFromData()
         self.updateShape(well)
-        print('rotation: ' + str(self.rotation))
+        # print('rotation: ' + str(self.rotation))
 
     def rotateLeft(self, well):
         if not self.canRotateLeft():
@@ -374,7 +372,7 @@ class Shape(object):
         self.rotation = self.getNextRotationLeft()
         self.createTilesFromData()
         self.updateShape(well)
-        print('rotation: ' + str(self.rotation))
+        # print('rotation: ' + str(self.rotation))
 
     def updateShape(self, well):
         tiles = self.getTiles()
@@ -397,7 +395,7 @@ class Shape(object):
             tileX = tile.getX()
             if tileY == posY and tileX == posX:
                 inShape = True
-                print('title is in shape: ' + str(inShape) + ', ' + str(tileY) + ', ' + str(tileX))
+                # print('title is in shape: ' + str(inShape) + ', ' + str(tileY) + ', ' + str(tileX))
             t += 1
         return inShape
 
@@ -406,7 +404,6 @@ class Tile(object):
         self.posY = posY
         self.posX = posX
         self.value = value
-        print('NEW TILE: ' + str(self.posY) + ', ' + str(self.posX))
 
     def getY(self):
         return self.posY
@@ -449,9 +446,7 @@ class Tile(object):
             return False
         nextRowInWell = well.getRowOfTilesByIndex(self.posY + 1)
         tileInRow = well.getRowOfTilesByIndex(self.posY)[self.posX]
-        print('tileInRow: ' + str(tileInRow.getY()) + ', ' + str(tileInRow.getX()) + ', ' + str(tileInRow.getValue()))
         tileInNextRow = nextRowInWell[self.posX]
-        print('tileInNextRow: ' + str(tileInNextRow.getY()) + ', ' + str(tileInNextRow.getX()) + ', ' + str(tileInNextRow.getValue()))
         return tileInNextRow.getValue() is 0
 
     def tileAboveIsEmpty(self, well):
@@ -481,39 +476,20 @@ class Well(object):
         self.shape = None
 
     def getFilledRows(self):
-        filledRows = []
+        rows = []
         row = 0
         while row < len(self.rows):
-            rowIsFilled = True
-            col = 0
-            while col < len(self.rows[row]):
-                tile = self.rows[row][col]
-                # print('tile value: ' + str(tile.getValue()))
-                if tile.getValue() is 0:
-                    rowIsFilled = False
-                col += 1
-            if rowIsFilled is True:
-                filledRows.append(self.rows[row])
+            if self.isRowFilled(row):
+                rows.append(self.rows[row])
             row += 1
-        print('getFilledRows():' + str(len(filledRows)))
-        return filledRows
+        return rows
 
-    def getLowestEmptyPosition(self, col):
-        lowestPosition = 0
-        row = 0
-        while row < const.WELL_H:
-            currentRow = self.getRowOfTilesByIndex(row)
-            print('*********** value: ' + str(currentRow[col]))
-            if currentRow[col] is 0:
-                lowestPosition = row
-            row += 1
-        print('lowest position in col: ' + str(col) + ' is ' + str(row))
-        return lowestPosition
+    def getRowPosY(self, rowOfTiles):
+        firstTile = rowOfTiles[0]
+        return firstTile.getY()
 
-    def removeFilledRows(self, shape):
-        print('removing filled rows')
+    def removeFilledRows(self):
         filledRows = self.getFilledRows()
-        print('number of filled rows: ' + str(len(filledRows)))
         if len(filledRows) > 0:
             row = len(filledRows) - 1
             while row >= 0:
@@ -526,28 +502,87 @@ class Well(object):
                     col += 1
                 row -= 1
 
-        self.dropDeadTiles(shape)
+        self.dropRows()
+
+    def swapRow(self, topIndex, bottomIndex):
+        topRow = self.getRowOfTilesByIndex(topIndex)
+        bottomRow = self.getRowOfTilesByIndex(bottomIndex)
+        self.assignNewYPositionToRow(topIndex, bottomIndex)
+        self.assignNewYPositionToRow(bottomIndex, topIndex)
+        self.rows[bottomIndex] = topRow
+        self.rows[topIndex] = bottomRow
+
+    def assignNewYPositionToRow(self, oldY, newY):
+        oldRow = self.getRowOfTilesByIndex(oldY)
+        col = 0
+        while col < len(oldRow):
+            currentTile = oldRow[col]
+            currentTile.setY(newY)
+            col += 1
 
 
-    def dropDeadTiles(self, shape):
-        print('dropping dead tiles')
-        row = const.WELL_H - 1
-        while row >= 0:
-            col = 0
-            while col < len(self.rows[row]):
-                tile = self.rows[row][col]
-                if tile.tileBelowIsEmpty(self):
-                    print('_______________' + str(self))
-                    tileY = tile.getY()
-                    tileX = tile.getX()
-                    tileValue = tile.getValue()
-                    lowestPosition = self.getLowestEmptyPosition(col)
-                    print('resetting tile: ' + str(tileY) + ', ' + str(tileX))
-                    print('lowestPosition (y):' + str(lowestPosition))
-                    self.setTile(lowestPosition, tileX, tileValue)
-                    self.setTile(tileY, tileX, 0)
-                col += 1
-            row -= 1
+    def isRowFilled(self, rowIndex):
+        row = self.getRowOfTilesByIndex(rowIndex)
+        col = 0
+        while col < len(row):
+            if row[col].getValue() is 0:
+                return False
+            col += 1
+        return True
+
+    def isRowEmpty(self, rowIndex):
+        row = self.getRowOfTilesByIndex(rowIndex)
+        rowIsEmpty = True
+        col = 0
+        while col < len(row):
+            if row[col].getValue() is not 0:
+                rowIsEmpty = False
+            col += 1
+        return rowIsEmpty
+
+    def getLowestEmptyRowIndex(self):
+        row = 0
+        emptyRow = 0
+        while row < const.WELL_H:
+            if self.isRowEmpty(row):
+                emptyRow = row
+            else:
+                return emptyRow
+            row += 1
+        return const.WELL_H - 1
+
+    def getEmptyRowsBelow(self, rowIndex):
+        emptyRows = []
+        if rowIndex is const.WELL_H - 1:
+            return emptyRows
+        row = rowIndex
+        while row < const.WELL_H:
+            if self.isRowEmpty(row):
+                emptyRows.append(row)
+            row += 1
+        return emptyRows
+
+    def moveRow(self, rowIndex, newRowIndex):
+        rowToMove = self.rows[rowIndex][:]
+        self.rows = self.rows[:rowIndex] + self.rows[rowIndex + 1:]
+        self.rows = self.rows[:newRowIndex] + [rowToMove] + self.rows[newRowIndex:]
+        row = rowIndex
+        while row < const.WELL_H:
+            currentRow = self.getRowOfTilesByIndex(row)
+            currentPosY = self.getRowPosY(currentRow)
+            if currentPosY is not row:
+                self.assignNewYPositionToRow(row, row)
+            row += 1
+
+    def dropRows(self):
+        rowIndex = const.WELL_H - 1
+        lowestEmptyRowIndex = self.getLowestEmptyRowIndex()
+        while rowIndex > lowestEmptyRowIndex:
+            emptyRows = self.getEmptyRowsBelow(rowIndex)
+            # if row is not empty and cleared rows below
+            if not self.isRowEmpty(rowIndex) and len(emptyRows) > 0:
+                self.moveRow(rowIndex, rowIndex + len(emptyRows))
+            rowIndex -= 1
 
     def addRowOfTiles(self, rowOfTiles):
         self.rows.append(rowOfTiles)
@@ -563,9 +598,9 @@ class Well(object):
 
     def setTile(self, row, col, value):
         tileAtRow = self.rows[row]
-        if value is 0:
-            print('WELL::setting tile to 0 at: row: ' + str(row) + ', col: ' + str(col) + ', val: ' + str(value))
-        else: print('WELL::setting tile at: row: ' + str(row) + ', col: ' + str(col) + ', val: ' + str(value))
+        # if value is 0:
+        #     print('WELL::setting tile to 0 at: row: ' + str(row) + ', col: ' + str(col) + ', val: ' + str(value))
+        # else: print('WELL::setting tile at: row: ' + str(row) + ', col: ' + str(col) + ', val: ' + str(value))
         tile = tileAtRow[col]
         tile.setValue(value)
 
