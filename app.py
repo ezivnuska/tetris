@@ -109,7 +109,9 @@ class App(object):
         else:
             lastShape = self.shape
             self.shape = None
-            if len(self.well.getFilledRows()) > 0:
+            numberOfFilledRows = len(self.well.getFilledRows())
+            if numberOfFilledRows > 0:
+                self.score += numberOfFilledRows
                 self.well.removeFilledRows()
 
         self.well.printWell()

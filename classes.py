@@ -304,7 +304,9 @@ class Shape(object):
         if self.posY < const.WELL_H - 1:
             self.posY += 1
 
-        # well.printWell()
+    # def moveToBottom(self, well):
+    #     posY = self.posY
+    #     posX = self.posX
 
     def getNextRotationRight(self):
         if len(self.tileList) is 1:
