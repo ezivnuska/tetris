@@ -62,8 +62,8 @@ class App(object):
             if event.key == pygame.K_RIGHT:
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     self.moveRight()
-            # if event.key is pygame.K_SPACE:
-            #     self.moveToBottom()
+            if event.key is pygame.K_SPACE:
+                self.moveToBottom()
             if event.key == pygame.K_UP:
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     self.rotateRight()
@@ -102,6 +102,10 @@ class App(object):
 
     def resume(self):
         self.setSpeed(self.lastSpeed)
+
+    def moveToBottom(self):
+        while self.shape.canMoveDown(self.well):
+            self.moveDown()
 
     def moveDown(self):
         if self.shape.canMoveDown(self.well):
