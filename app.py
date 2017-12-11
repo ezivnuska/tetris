@@ -69,7 +69,11 @@ class App(object):
                     self.moveRight()
             # Move to bottom
             if event.key is pygame.K_SPACE:
-                self.moveToBottom()
+                if self.gameOver is True:
+                    self.resetGame()
+                    self.gameOver = False
+                else:
+                    self.moveToBottom()
             # Rotate right
             if event.key == pygame.K_UP:
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
@@ -154,15 +158,27 @@ class App(object):
 
     def rotateRight(self):
         self.shape.rotateRight(self.well)
-        # self.addShapeToWell()
 
     def rotateLeft(self):
         self.shape.rotateLeft(self.well)
-        # self.addShapeToWell()
 
+    def resetGame(self):
+        self.score = 0
+        self.level = 1
+        self.clearTiles()
+        print(self.shape.getY())
+        self.resume()
+
+    def clearTiles(self):
+        row = 0
+        while row < const.WELL_H:
+            col = 0
+            while col < const.WELL_W:
+                tile = self.well.setTile(row, col, 0)
+                col += 1
+            row += 1
 
     def addTiles(self):
-        print('adding tiles')
         row = 0
         while row < const.WELL_H:
             tiles = []
@@ -226,11 +242,11 @@ class App(object):
             r += 1
 
     def drawGameOver(self):
-        gameOverText = self.font.render(rule, 1, (255, 255, 255))
+        gameOverText = self.font.render('Game Over', 1, (255, 255, 255))
         rect = gameOverText.get_rect()
         rect.centerx = self.screen.get_rect().centerx
         rect.centery = self.screen.get_rect().centery
-        self.screen.blit('Game Over', rect)
+        self.screen.blit(gameOverText, rect)
 
     def render(self):
         self.screen.fill(const.C_BLACK)
