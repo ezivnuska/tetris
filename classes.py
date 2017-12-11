@@ -438,7 +438,6 @@ class Shape(object):
             tileX = tile.getX()
             if tileY == posY and tileX == posX:
                 inShape = True
-                # print('title is in shape: ' + str(inShape) + ', ' + str(tileY) + ', ' + str(tileX))
             t += 1
         return inShape
 
@@ -510,9 +509,6 @@ class Tile(object):
         lastRow = well.getRows() - 1
         return self.posY is lastRow
 
-    # def (self, well):
-
-
 class Well(object):
     def __init__(self):
         self.rows = []
@@ -562,7 +558,6 @@ class Well(object):
             currentTile = oldRow[col]
             currentTile.setY(newY)
             col += 1
-
 
     def isRowFilled(self, rowIndex):
         row = self.getRowOfTilesByIndex(rowIndex)
@@ -640,9 +635,6 @@ class Well(object):
 
     def setTile(self, row, col, value):
         tileAtRow = self.rows[row]
-        # if value is 0:
-        #     print('WELL::setting tile to 0 at: row: ' + str(row) + ', col: ' + str(col) + ', val: ' + str(value))
-        # else: print('WELL::setting tile at: row: ' + str(row) + ', col: ' + str(col) + ', val: ' + str(value))
         tile = tileAtRow[col]
         tile.setValue(value)
 

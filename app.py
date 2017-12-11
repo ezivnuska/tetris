@@ -22,6 +22,7 @@ class App(object):
         self.shapeRotation = 0
 
         self.showRules = False
+        self.gameOver = False
 
         self.init()
 
@@ -51,10 +52,7 @@ class App(object):
             self.terminate()
 
         if event.type is const.MOVE_DOWN:
-            # print('-------')
-            # print('MOVE_DOWN')
             self.moveDown()
-
 
         if event.type == pygame.KEYDOWN:
 
@@ -99,6 +97,10 @@ class App(object):
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     self.toggleRules()
 
+    def endGame(self):
+        self.pause()
+        self.gameOver = True
+
     def setSpeed(self, speed):
         self.lastSpeed = self.speed
         self.speed = speed
@@ -127,6 +129,8 @@ class App(object):
         if self.shape.canMoveDown(self.well):
             self.shape.moveDown(self.well)
         else:
+            if self.shape.getY() is 0:
+                self.endGame()
             lastShape = self.shape
             self.shape = None
             numberOfFilledRows = len(self.well.getFilledRows())
@@ -221,10 +225,19 @@ class App(object):
             posY += lineHeight
             r += 1
 
+    def drawGameOver(self):
+        gameOverText = self.font.render(rule, 1, (255, 255, 255))
+        rect = gameOverText.get_rect()
+        rect.centerx = self.screen.get_rect().centerx
+        rect.centery = self.screen.get_rect().centery
+        self.screen.blit('Game Over', rect)
+
     def render(self):
         self.screen.fill(const.C_BLACK)
 
-        if self.showRules is True:
+        if self.gameOver is True:
+            self.drawGameOver()
+        elif self.showRules is True:
             self.drawRules()
         else:
             # draw scoreboard
