@@ -26,6 +26,23 @@ class Shape(object):
                 col += 1
             row += 1
 
+    def getNextTileList(self, rotation):
+        tiles = []
+        # tileList: a list, containing rows in nested lists
+        tileList = self.getTileListAtRotation(rotation)
+        row = 0
+        # for each row in list
+        while row < len(tileList):
+            col = 0
+            # for each column in row
+            while col < len(tileList[row]):
+                # add tile to tiles
+                tile = Tile(self.posY + row, self.posX + col, tileList[row][col])
+                tiles.append(tile)
+                col += 1
+            row += 1
+        return tiles
+
     def clearShapeTiles(self, well):
         tiles = self.getTiles()
         t = 0
@@ -62,8 +79,10 @@ class Shape(object):
         self.type = type
 
     def getTileList(self):
-        print('self.rotation: ' + str(self.rotation))
         return self.tileList[self.rotation]
+
+    def getTileListAtRotation(self, rotation):
+        return self.tileList[rotation]
 
     def getTiles(self):
         return self.tiles
@@ -334,43 +353,70 @@ class Shape(object):
         nextRotation = self.getNextRotationLeft()
         return len(self.tileList[nextRotation][0])
 
-    def canRotateRight(self):
+    def canRotateRight(self, well):
+        # check new position at right edge
         newWidth = self.getWidthAfterRotationRight()
         newHeight = self.getHeightAfterRotationRight()
         if self.posX + newWidth >= const.WELL_W:
             return False
         if self.posY + newHeight >= const.WELL_H:
             return False
+
+        # check new position relative to other tiles
+        tileListAtRotation = self.getNextTileList(self.getNextRotationRight())
+        t = 0
+        while t < len(tileListAtRotation):
+            currentTile = tileListAtRotation[t]
+            posY = currentTile.getY()
+            posX = currentTile.getX()
+            tile = well.getTile(posY, posX)
+            if not self.tileIsInShape(posY, posX):
+                tile = well.getTile(posY, posX)
+                if tile.getValue() is not 0:
+                    return False
+            t += 1
         return True
 
-    def canRotateLeft(self):
+    def canRotateLeft(self, well):
+        # check new position at left edge
         newWidth = self.getWidthAfterRotationLeft()
         newHeight = self.getHeightAfterRotationLeft()
         if self.posX < 0:
             return False
         if self.posY + newHeight >= const.WELL_H:
             return False
+
+        # check new position relative to other tiles
+        tileListAtRotation = self.getNextTileList(self.getNextRotationLeft())
+        row = 0
+        while row < len(tileListAtRotation):
+            col = 0
+            while col < len(tileListAtRotation[row]):
+                posY = row
+                posX = col
+                if not self.tileIsInShape(posY, posX):
+                    tile = well.getTile(posY, posX)
+                    if tile.getValue() is not 0:
+                        return False
+                col += 1
+            row += 1
         return True
 
     def rotateRight(self, well):
-        if not self.canRotateRight():
+        if not self.canRotateRight(well):
             return None
-        print('* rotate right *')
         self.clearShapeTiles(well)
         self.rotation = self.getNextRotationRight()
         self.createTilesFromData()
         self.updateShape(well)
-        # print('rotation: ' + str(self.rotation))
 
     def rotateLeft(self, well):
-        if not self.canRotateLeft():
+        if not self.canRotateLeft(well):
             return None
-        print('* rotate left *')
         self.clearShapeTiles(well)
         self.rotation = self.getNextRotationLeft()
         self.createTilesFromData()
         self.updateShape(well)
-        # print('rotation: ' + str(self.rotation))
 
     def updateShape(self, well):
         tiles = self.getTiles()
@@ -381,7 +427,6 @@ class Shape(object):
             if not tile.isEmpty():
                 well.setTile(tile.getY(), tile.getX(), tile.getValue())
             t += 1
-        print('shape updated')
 
     def tileIsInShape(self, posY, posX):
         inShape = False
@@ -589,7 +634,6 @@ class Well(object):
         return self.rows[index]
 
     def getTile(self, row, col):
-        # print('getting tile at y: ' + str(row) + ', x: ' + str(col))
         if row > const.WELL_H - 1:
             print('fail: ' + str(row))
         return self.rows[row][col]
