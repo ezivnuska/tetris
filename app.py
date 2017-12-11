@@ -9,6 +9,7 @@ class App(object):
         # state
         self.timeLastKeyPressed = 0
         self.timeBetweenKeyPresses = 200
+        self.lastSpeed = 500
         self.speed = 500
         # ...
 
@@ -20,11 +21,14 @@ class App(object):
         self.nextShape = None
         self.shapeRotation = 0
 
+        self.showRules = False
+
         self.init()
 
     def init(self):
         pygame.init()
         pygame.key.set_repeat(200, 100)
+
         self.setSpeed(self.speed)
 
         self.screen = pygame.display.set_mode((const.SCR_W, const.SCR_H))
@@ -54,34 +58,46 @@ class App(object):
 
         if event.type == pygame.KEYDOWN:
 
+            # Quit
             if event.key == pygame.K_q:
                 self.terminate()
+            # Move left
             if event.key == pygame.K_LEFT:
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     self.moveLeft()
+            # Move right
             if event.key == pygame.K_RIGHT:
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     self.moveRight()
+            # Move to bottom
             if event.key is pygame.K_SPACE:
                 self.moveToBottom()
+            # Rotate right
             if event.key == pygame.K_UP:
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     self.rotateRight()
+            # Rotate left
             if event.key == pygame.K_DOWN:
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     self.rotateLeft()
+            # Reduce speed (for development)
             if event.key == pygame.K_COMMA:
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     self.reduceSpeed()
+            # Increase speed (for development)
             if event.key == pygame.K_PERIOD:
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     self.increaseSpeed()
+            # Pause / Resume (for development)
             if event.key == pygame.K_p:
                 if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
                     if self.speed is not 0:
                         self.pause()
                     else:
                         self.resume()
+            if event.key == pygame.K_r:
+                if self.getTime() > self.timeLastKeyPressed + self.timeBetweenKeyPresses:
+                    self.toggleRules()
 
     def setSpeed(self, speed):
         self.lastSpeed = self.speed
@@ -179,47 +195,69 @@ class App(object):
             tile = tiles[t]
             if tile.getValue() is not 0:
                 self.well.setTile(tile.getY(), tile.getX(), tile.getValue())
-            # newTile = self.well.getTile(tile.getY(), tile.getX())
             t += 1
-        print('added shape')
-        self.well.printWell()
-        print('^^^^^^^^^^^^^^^^^^')
 
+        self.well.printWell()
+
+    def toggleRules(self):
+        self.showRules = not self.showRules
+        if self.showRules is True:
+            self.pause()
+        else:
+            self.resume()
+
+    def drawRules(self):
+        posY = 50
+        margin = 10
+        r = 0
+        while r < len(const.RULES):
+            rule = const.RULES[r]
+            ruleText = self.font.render(rule, 1, (255, 255, 255))
+            rect = ruleText.get_rect()
+            rect.centerx = self.screen.get_rect().centerx
+            rect.centery = posY
+            self.screen.blit(ruleText, rect)
+            lineHeight = self.font.get_linesize() + margin
+            posY += lineHeight
+            r += 1
 
     def render(self):
         self.screen.fill(const.C_BLACK)
 
-        # draw scoreboard
-        self.scoreboardText = self.font.render('Score: ' + str(self.score), 1, (255, 255, 255))
-        rect = self.scoreboardText.get_rect()
-        rect.bottomleft = (const.MARGIN_LEFT, 495)
-        self.screen.blit(self.scoreboardText, rect)
+        if self.showRules is True:
+            self.drawRules()
+        else:
+            # draw scoreboard
+            self.scoreboardText = self.font.render('Score: ' + str(self.score), 1, (255, 255, 255))
+            rect = self.scoreboardText.get_rect()
+            rect.bottomleft = (const.MARGIN_LEFT, 495)
+            self.screen.blit(self.scoreboardText, rect)
 
-        # draw level
-        self.levelText = self.font.render('Level: ' + str(self.level), 1, (255, 255, 255))
-        rect = self.levelText.get_rect()
-        rect.bottomright = (const.SCR_W - const.MARGIN_LEFT, 495)
-        self.screen.blit(self.levelText, rect)
+            # draw level
+            self.levelText = self.font.render('Level: ' + str(self.level), 1, (255, 255, 255))
+            rect = self.levelText.get_rect()
+            rect.bottomright = (const.SCR_W - const.MARGIN_LEFT, 495)
+            self.screen.blit(self.levelText, rect)
 
-        pygame.draw.rect(self.screen, const.C_LGRAY, (const.MARGIN_LEFT - 5, const.MARGIN_TOP - 5,
-                                                  const.WELL_PX_W + 10, const.WELL_PX_H + 10))
-        pygame.draw.rect(self.screen, const.C_DGRAY, (const.MARGIN_LEFT, const.MARGIN_TOP,
-                                                  const.WELL_PX_W, const.WELL_PX_H))
+            pygame.draw.rect(self.screen, const.C_LGRAY, (const.MARGIN_LEFT - 5, const.MARGIN_TOP - 5,
+                                                      const.WELL_PX_W + 10, const.WELL_PX_H + 10))
+            pygame.draw.rect(self.screen, const.C_DGRAY, (const.MARGIN_LEFT, const.MARGIN_TOP,
+                                                      const.WELL_PX_W, const.WELL_PX_H))
 
-        row = 0
-        while row < const.WELL_H:
-            # print('getting tile: ' + str(row))
-            col = 0
-            while col < const.WELL_W:
-                currentTile = self.well.getTile(row, col)
-                if currentTile.getValue() is not 0:
-                    # print(const.C_LIST[currentTile.getValue()])
-                    pygame.draw.rect(self.screen, const.C_LIST[currentTile.getValue()],
-                                    (const.MARGIN_LEFT + col * const.BLOCK_SIZE,
-                                    const.MARGIN_TOP + row * const.BLOCK_SIZE,
-                                    const.BLOCK_SIZE, const.BLOCK_SIZE))
-                col += 1
-            row += 1
+            row = 0
+            while row < const.WELL_H:
+                # print('getting tile: ' + str(row))
+                col = 0
+                while col < const.WELL_W:
+                    currentTile = self.well.getTile(row, col)
+                    if currentTile.getValue() is not 0:
+                        # print(const.C_LIST[currentTile.getValue()])
+                        pygame.draw.rect(self.screen, const.C_LIST[currentTile.getValue()],
+                                        (const.MARGIN_LEFT + col * const.BLOCK_SIZE,
+                                        const.MARGIN_TOP + row * const.BLOCK_SIZE,
+                                        const.BLOCK_SIZE, const.BLOCK_SIZE))
+                    col += 1
+                row += 1
 
         pygame.display.flip()
 

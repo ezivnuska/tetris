@@ -139,3 +139,12 @@ SHAPES = [
         ]
     ]
 ]
+
+RULES = [
+    'Move left : left arrow',
+    'Move right : right arrow',
+    'Rotate left : down button',
+    'Rotate right : up arrow',
+    'Drop shape : space bar',
+    'Quit : q'
+]
