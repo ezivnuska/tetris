@@ -388,18 +388,17 @@ class Shape(object):
 
         # check new position relative to other tiles
         tileListAtRotation = self.getNextTileList(self.getNextRotationLeft())
-        row = 0
-        while row < len(tileListAtRotation):
-            col = 0
-            while col < len(tileListAtRotation[row]):
-                posY = row
-                posX = col
-                if not self.tileIsInShape(posY, posX):
-                    tile = well.getTile(posY, posX)
-                    if tile.getValue() is not 0:
-                        return False
-                col += 1
-            row += 1
+        t = 0
+        while t < len(tileListAtRotation):
+            currentTile = tileListAtRotation[t]
+            posY = currentTile.getY()
+            posX = currentTile.getX()
+            tile = well.getTile(posY, posX)
+            if not self.tileIsInShape(posY, posX):
+                tile = well.getTile(posY, posX)
+                if tile.getValue() is not 0:
+                    return False
+            t += 1
         return True
 
     def rotateRight(self, well):
