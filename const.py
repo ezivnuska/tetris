@@ -27,6 +27,14 @@ C_GREEN  = (  0, 255,   0)
 C_PURPLE = (200,   0, 200)
 C_RED    = (255,   0,   0)
 
+BC_CYAN   = (127, 127, 127)
+BC_BLUE   = (127, 127, 127)
+BC_ORANGE = (127, 128,   0)
+BC_YELLOW = (127, 127,   0)
+BC_GREEN  = (  0, 127,   0)
+BC_PURPLE = (127,   0, 127)
+BC_RED    = (127,   0,   0)
+
 C_LIST = [C_BLACK,
           C_CYAN,
           C_BLUE,
@@ -35,6 +43,15 @@ C_LIST = [C_BLACK,
           C_GREEN,
           C_PURPLE,
           C_RED,]
+
+BC_LIST = [C_BLACK,
+          BC_CYAN,
+          BC_BLUE,
+          BC_ORANGE,
+          BC_YELLOW,
+          BC_GREEN,
+          BC_PURPLE,
+          BC_RED,]
 
 MOVE_DOWN = pygame.USEREVENT + 1
 

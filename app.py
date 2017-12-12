@@ -166,7 +166,6 @@ class App(object):
         self.score = 0
         self.level = 1
         self.clearTiles()
-        print(self.shape.getY())
         self.resume()
 
     def clearTiles(self):
@@ -275,16 +274,20 @@ class App(object):
 
             row = 0
             while row < const.WELL_H:
-                # print('getting tile: ' + str(row))
                 col = 0
                 while col < const.WELL_W:
                     currentTile = self.well.getTile(row, col)
                     if currentTile.getValue() is not 0:
-                        # print(const.C_LIST[currentTile.getValue()])
-                        pygame.draw.rect(self.screen, const.C_LIST[currentTile.getValue()],
+                        # draw tile border
+                        pygame.draw.rect(self.screen, (255, 255, 255),
                                         (const.MARGIN_LEFT + col * const.BLOCK_SIZE,
                                         const.MARGIN_TOP + row * const.BLOCK_SIZE,
                                         const.BLOCK_SIZE, const.BLOCK_SIZE))
+                        # draw tile fill
+                        pygame.draw.rect(self.screen, const.C_LIST[currentTile.getValue()],
+                                        (const.MARGIN_LEFT + col * const.BLOCK_SIZE + 1,
+                                        const.MARGIN_TOP + row * const.BLOCK_SIZE + 1,
+                                        const.BLOCK_SIZE - 2, const.BLOCK_SIZE - 2))
                     col += 1
                 row += 1
 

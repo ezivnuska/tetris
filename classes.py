@@ -659,7 +659,6 @@ class Well(object):
             currentRow = []
             while col < len(rowOfTiles):
                 tile = rowOfTiles[col]
-                # print('tile y: ' + str(tile.getY()) + ' and x: ' + str(tile.getX()) + ': ' + str(tile.getValue()))
                 currentRow.append(tile.getValue())
                 col += 1
             print(currentRow)
